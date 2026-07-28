@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocuAI — Auto Documentation Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="logo">
+        <span class="logo-icon">✍️</span>
+        <h2>DocuAI</h2>
+      </div>
+      <nav class="nav-menu">
+        <button id="nav-dashboard" class="active"><span class="icon">📄</span> Doc Generator</button>
+        <button id="nav-history"><span class="icon">💼</span> Saved Docs</button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-profile" id="user-profile-btn" style="cursor: pointer;">
+          <div class="avatar" id="user-avatar">D</div>
+          <div class="user-info">
+            <h4 id="user-name-display">Dev Workspace</h4>
+            <p id="user-role-display">Click to Login / Register</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- DASHBOARD VIEW -->
+      <div id="view-dashboard-container">
+        <header class="header">
+          <div class="header-title">
+            <h1>Auto Documentation Generator</h1>
+            <p>Instantly turn code changes, complex modules, or git diffs into production-grade documentation.</p>
+          </div>
+          <div class="header-actions">
+            <div class="status-badge live" id="ai-status-badge">NVIDIA Nemotron Doc Engine</div>
+          </div>
+        </header>
+
+        <!-- Template Presets Row -->
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap;">
+          <span style="font-size: 13px; color: #A0A5C0; font-weight: 600;">💡 Try Presets:</span>
+          <button id="sample-js-btn" class="btn secondary btn-sm" style="font-size: 12px; padding: 4px 12px;">💻 Auth Controller (JS)</button>
+          <button id="sample-python-btn" class="btn secondary btn-sm" style="font-size: 12px; padding: 4px 12px;">🐍 FastAPI Service (Python)</button>
+          <button id="sample-rust-btn" class="btn secondary btn-sm" style="font-size: 12px; padding: 4px 12px;">⚙️ WASM Engine (Rust)</button>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Input Panel -->
+          <section class="card input-card">
+            <h3>1. Paste Code Snippet or Git Diff</h3>
+            <div class="form-group">
+              <textarea id="code-input" placeholder="Paste your code module, git diff, or technical notes here..."></textarea>
+            </div>
+            
+            <div class="format-selection">
+              <h4>Target Documentation Format</h4>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="doc-format" value="readme" checked>
+                  <span>📄 README.md</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="doc-format" value="api">
+                  <span>🛰️ API Reference</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="doc-format" value="comments">
+                  <span>💬 JSDoc / Comments</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="doc-format" value="architecture">
+                  <span>🏗️ Architecture Summary</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="action-row">
+              <button id="generate-btn" class="btn primary">⚡ Generate Documentation</button>
+            </div>
+          </section>
+
+          <!-- Output Preview Panel -->
+          <section class="card output-card">
+            <div class="card-header">
+              <h3>2. Documentation Output</h3>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button id="tab-raw-btn" class="btn secondary btn-sm" style="border-color: var(--neon-lime); color: var(--neon-lime);">📄 Raw Markdown</button>
+                <button id="tab-preview-btn" class="btn secondary btn-sm">👁️ Live Preview</button>
+                <button id="copy-btn" class="btn secondary btn-sm">📋 Copy</button>
+                <button id="export-txt-btn" class="btn secondary btn-sm">📥 Download .md</button>
+              </div>
+            </div>
+
+            <!-- Raw Text Area Mode -->
+            <div id="output-raw-wrapper" style="display: flex; flex-grow: 1;">
+              <textarea id="output-doc-content" readonly placeholder="Generated documentation will appear here..."></textarea>
+            </div>
+
+            <!-- Rendered HTML Markdown Preview Mode -->
+            <div id="output-preview-wrapper" class="markdown-body hidden">
+              <p style="color: var(--text-muted);">Live HTML preview will render here...</p>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- SAVED HISTORY VIEW -->
+      <div id="view-history-container" class="hidden">
+        <header class="header">
+          <div class="header-title">
+            <h1>Saved Documentation Library</h1>
+            <p>Access and review all your previously generated documentation modules.</p>
+          </div>
+          <button id="back-to-dashboard-btn" class="btn secondary">⬅️ Back to Generator</button>
+        </header>
+
+        <section class="card">
+          <div id="history-list-container" style="display: flex; flex-direction: column; gap: 1rem;">
+            <p style="color: var(--text-muted);">Loading saved documentations...</p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
