@@ -1,4 +1,4 @@
-/* DocuForge AI — Strict 3-Color Neon & Dual Mode Design System */
+/* DocuForge AI — Strict 3-Color Neon & Dynamic Contrast System */
 :root {
   /* Strict 3-Color Neon Palette */
   --neon-lime: #E3FF28;
@@ -8,8 +8,8 @@
   /* Dark Monokai Glass Canvas (Default) */
   --bg-darker: #0B0719;
   --bg-dark: #120C29;
-  --bg-card: rgba(18, 12, 41, 0.75);
-  --bg-card-hover: rgba(28, 19, 64, 0.85);
+  --bg-card: rgba(18, 12, 41, 0.78);
+  --bg-card-hover: rgba(28, 19, 64, 0.88);
   --bg-input: rgba(11, 7, 25, 0.95);
   
   --text-main: #FFFFFF;
@@ -21,12 +21,12 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --font-display: 'Outfit', sans-serif;
   --font-sans: 'Inter', sans-serif;
 }
 
-/* LIGHT MODE OVERRIDES: Strict 3-Color Neon Full Gradient Background */
+/* LIGHT MODE: High-Contrast Inverted Cards on Full Neon Gradient Background */
 body.light-theme {
   background: linear-gradient(135deg, #E3FF28 0%, #EE29FF 50%, #7A49FF 100%) !important;
   background-attachment: fixed !important;
@@ -34,78 +34,85 @@ body.light-theme {
 }
 
 body.light-theme .sidebar {
-  background: rgba(255, 255, 255, 0.9) !important;
+  background: rgba(15, 23, 42, 0.92) !important;
   backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(15, 23, 42, 0.15);
+  border-right: 1px solid rgba(227, 255, 40, 0.3);
+  color: #FFFFFF !important;
+}
+
+body.light-theme .sidebar h2,
+body.light-theme .sidebar p,
+body.light-theme .user-info h4 {
+  color: #FFFFFF !important;
+}
+
+body.light-theme .sidebar .nav-menu button {
+  color: #CBD5E1 !important;
+}
+
+body.light-theme .sidebar .nav-menu button.active {
+  background: rgba(227, 255, 40, 0.18) !important;
+  color: var(--neon-lime) !important;
+  border-left: 4px solid var(--neon-lime) !important;
 }
 
 body.light-theme .card {
-  background: rgba(255, 255, 255, 0.88) !important;
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(15, 23, 42, 0.15) !important;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15) !important;
-  color: #0F172A !important;
+  background: rgba(15, 23, 42, 0.88) !important;
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(238, 41, 255, 0.35) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3) !important;
+  color: #F8FAFC !important;
 }
 
 body.light-theme .header-title h1 {
-  background: linear-gradient(135deg, #0F172A, #7A49FF) !important;
+  background: linear-gradient(135deg, #0F172A, #381DA3) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
 }
 
 body.light-theme .header-title p,
-body.light-theme .user-info p,
 body.light-theme .format-selection h4,
 body.light-theme .text-muted-theme {
-  color: #475569 !important;
+  color: #0F172A !important;
+  font-weight: 700 !important;
 }
 
 body.light-theme textarea,
 body.light-theme .markdown-body {
-  background: #FFFFFF !important;
-  color: #0F172A !important;
-  border: 1px solid rgba(15, 23, 42, 0.2) !important;
+  background: #0B0719 !important;
+  color: #F8FAFC !important;
+  border: 1px solid rgba(227, 255, 40, 0.4) !important;
 }
 
 body.light-theme textarea:focus {
-  border-color: #7A49FF !important;
-  box-shadow: 0 0 15px rgba(122, 73, 255, 0.3) !important;
+  border-color: var(--neon-lime) !important;
+  box-shadow: 0 0 20px rgba(227, 255, 40, 0.4) !important;
 }
 
 body.light-theme .radio-label {
-  background: rgba(255, 255, 255, 0.9) !important;
-  color: #475569 !important;
-  border: 1px solid rgba(15, 23, 42, 0.2) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0F172A !important;
+  border: 1px solid rgba(15, 23, 42, 0.3) !important;
+  font-weight: 700 !important;
 }
 
 body.light-theme .radio-label:has(input:checked) {
   background: #0F172A !important;
-  color: #E3FF28 !important;
+  color: var(--neon-lime) !important;
   border-color: #0F172A !important;
 }
 
 body.light-theme .btn.primary {
   background: #0F172A !important;
-  color: #E3FF28 !important;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.3) !important;
+  color: var(--neon-lime) !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.4) !important;
 }
 
 body.light-theme .btn.secondary {
-  background: rgba(255, 255, 255, 0.9) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
   color: #0F172A !important;
-  border: 1px solid rgba(15, 23, 42, 0.3) !important;
-}
-
-body.light-theme .nav-menu button,
-body.light-theme .nav-menu a {
-  color: #475569 !important;
-}
-
-body.light-theme .nav-menu button.active,
-body.light-theme .nav-menu a.active {
-  background: #0F172A !important;
-  color: #E3FF28 !important;
-  border-left: 4px solid #EE29FF !important;
+  border: 1px solid rgba(15, 23, 42, 0.4) !important;
+  font-weight: 700 !important;
 }
 
 /* BASE STYLES */
@@ -127,6 +134,7 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background 0.4s ease, color 0.4s ease;
 }
 
 /* App Layout Grid */
@@ -145,6 +153,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  transition: var(--transition);
 }
 
 .logo {
@@ -587,9 +596,9 @@ textarea:focus {
 }
 
 body.light-theme .modal-content {
-  background: #FFFFFF !important;
-  color: #0F172A !important;
-  border-color: #7A49FF !important;
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  border-color: var(--neon-lime) !important;
 }
 
 .modal-header {
@@ -617,8 +626,8 @@ body.light-theme .modal-content {
 }
 
 body.light-theme .modal-input {
-  background: #F1F5F9 !important;
-  color: #0F172A !important;
+  background: #0B0719 !important;
+  color: #FFFFFF !important;
 }
 
 /* Hidden Class */

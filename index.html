@@ -137,11 +137,22 @@
               <pre><code id="output-cli-content">npx docuforge-ai generate --format=readme</code></pre>
             </div>
 
-            <div id="output-diagram-wrapper" class="markdown-body hidden" style="text-align: center;">
-              <div id="mermaid-container" class="mermaid">
-                graph TD
-                Client["📱 App Client"] --> API["⚡ Express Engine"]
-                API --> LLM["🧠 Nemotron-4 LLM"]
+            <!-- Enhanced Visual Diagram View -->
+            <div id="output-diagram-wrapper" class="markdown-body hidden">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; gap: 6px;">
+                  <button id="diag-flow-btn" class="btn secondary btn-sm" style="border-color: var(--neon-lime); color: var(--neon-lime);">🏗️ Flowchart</button>
+                  <button id="diag-seq-btn" class="btn secondary btn-sm">🔄 Sequence</button>
+                  <button id="diag-er-btn" class="btn secondary btn-sm">🗄️ ER Schema</button>
+                  <button id="diag-class-btn" class="btn secondary btn-sm">🧩 Class Diagram</button>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <button id="copy-mermaid-btn" class="btn secondary btn-sm">📋 Copy Code</button>
+                  <button id="download-svg-btn" class="btn secondary btn-sm">📥 Download SVG</button>
+                </div>
+              </div>
+              <div id="mermaid-render-box" style="background: rgba(11, 7, 25, 0.95); padding: 1.5rem; border-radius: 8px; text-align: center; overflow-x: auto; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                <div id="mermaid-target"></div>
               </div>
             </div>
 

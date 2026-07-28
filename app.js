@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize Mermaid
+  if (window.mermaid) {
+    mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
+  }
+
   // Elements
   const codeInput = document.getElementById('code-input');
   const generateBtn = document.getElementById('generate-btn');
@@ -12,13 +17,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const outputJsonContent = document.getElementById('output-json-content');
   const outputCliContent = document.getElementById('output-cli-content');
-  const mermaidContainer = document.getElementById('mermaid-container');
+  const mermaidTarget = document.getElementById('mermaid-target');
 
   const tabRawBtn = document.getElementById('tab-raw-btn');
   const tabPreviewBtn = document.getElementById('tab-preview-btn');
   const tabJsonBtn = document.getElementById('tab-json-btn');
   const tabCliBtn = document.getElementById('tab-cli-btn');
   const tabDiagramBtn = document.getElementById('tab-diagram-btn');
+
+  // Diagram Sub-Type Controls
+  const diagFlowBtn = document.getElementById('diag-flow-btn');
+  const diagSeqBtn = document.getElementById('diag-seq-btn');
+  const diagErBtn = document.getElementById('diag-er-btn');
+  const diagClassBtn = document.getElementById('diag-class-btn');
+  const copyMermaidBtn = document.getElementById('copy-mermaid-btn');
+  const downloadSvgBtn = document.getElementById('download-svg-btn');
 
   const copyBtn = document.getElementById('copy-btn');
   const exportTxtBtn = document.getElementById('export-txt-btn');
@@ -47,6 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // State
   let currentResponseData = null;
+  let currentDiagramType = 'flowchart';
+  let currentMermaidCode = `graph TD\n    Client["📱 Client Request"] --> API["⚡ Express API"]\n    API --> DB[("🗄️ WASM SQLite")]`;
 
   // Preset Samples
   const SAMPLE_JS = `// User Authentication Controller
@@ -138,6 +153,7 @@ impl VectorMathEngine {
       localStorage.setItem('docuforge-theme', 'dark');
       themeToggleBtn.textContent = '🌙 Dark Mode';
     }
+    renderMermaidDiagram();
   });
 
   // Load Saved Profile
@@ -165,7 +181,7 @@ impl VectorMathEngine {
     profileModal.classList.add('hidden');
   });
 
-  // 5 Output View Tab Switching
+  // Output View Tab Switching
   function hideAllOutputTabs() {
     outputRawWrapper.classList.add('hidden');
     outputPreviewWrapper.classList.add('hidden');
@@ -233,6 +249,90 @@ impl VectorMathEngine {
     outputDiagramWrapper.classList.remove('hidden');
     tabDiagramBtn.style.borderColor = 'var(--neon-purple)';
     tabDiagramBtn.style.color = 'var(--neon-lime)';
+    renderMermaidDiagram();
+  });
+
+  // Diagram Sub-Type Switching
+  function resetDiagBtns() {
+    [diagFlowBtn, diagSeqBtn, diagErBtn, diagClassBtn].forEach(b => {
+      b.style.borderColor = 'var(--border)';
+      b.style.color = 'var(--text-muted)';
+    });
+  }
+
+  diagFlowBtn.addEventListener('click', () => {
+    resetDiagBtns();
+    diagFlowBtn.style.borderColor = 'var(--neon-lime)';
+    diagFlowBtn.style.color = 'var(--neon-lime)';
+    currentDiagramType = 'flowchart';
+    generateMermaidCodeForType();
+  });
+
+  diagSeqBtn.addEventListener('click', () => {
+    resetDiagBtns();
+    diagSeqBtn.style.borderColor = 'var(--neon-magenta)';
+    diagSeqBtn.style.color = 'var(--neon-magenta)';
+    currentDiagramType = 'sequence';
+    generateMermaidCodeForType();
+  });
+
+  diagErBtn.addEventListener('click', () => {
+    resetDiagBtns();
+    diagErBtn.style.borderColor = 'var(--neon-purple)';
+    diagErBtn.style.color = 'var(--neon-purple)';
+    currentDiagramType = 'er';
+    generateMermaidCodeForType();
+  });
+
+  diagClassBtn.addEventListener('click', () => {
+    resetDiagBtns();
+    diagClassBtn.style.borderColor = 'var(--neon-lime)';
+    diagClassBtn.style.color = 'var(--neon-lime)';
+    currentDiagramType = 'class';
+    generateMermaidCodeForType();
+  });
+
+  function generateMermaidCodeForType() {
+    if (currentDiagramType === 'sequence') {
+      currentMermaidCode = `sequenceDiagram\n    autonumber\n    Client->>Express Server: Submit Code Payload\n    Express Server->>LLM Engine: Dispatch Context Prompt\n    LLM Engine-->>Express Server: Return Structured Doc\n    Express Server->>WASM SQLite: Persist History\n    Express Server-->>Client: Render Output View`;
+    } else if (currentDiagramType === 'er') {
+      currentMermaidCode = `erDiagram\n    USER ||--o{ DOCS_HISTORY : generates\n    USER {\n        int id PK\n        string name\n        string email\n    }\n    DOCS_HISTORY {\n        int id PK\n        string format\n        text raw_code\n        text generated_doc\n    }`;
+    } else if (currentDiagramType === 'class') {
+      currentMermaidCode = `classDiagram\n    class AuthController {\n        +DatabaseService db\n        +HashService hash\n        +login(email, password)\n        +generateToken(userId)\n    }\n    class DatabaseService {\n        +findUserByEmail(email)\n    }\n    AuthController --> DatabaseService`;
+    } else {
+      currentMermaidCode = `graph TD\n    Client["📱 Web Client / UI"] -->|"1. Submit Payload"| API["⚡ Express Server"]\n    API -->|"2. Dispatch to LLM"| NIM["🧠 Nemotron-4 LLM"]\n    NIM -->|"3. Return Structured Markdown"| API\n    API -->|"4. Persist Scan History"| DB[("🗄️ WASM SQLite DB")]\n    API -->|"5. Render Output"| Client`;
+    }
+    renderMermaidDiagram();
+  }
+
+  async function renderMermaidDiagram() {
+    if (!window.mermaid) return;
+    try {
+      mermaidTarget.innerHTML = `<div class="mermaid">${currentMermaidCode}</div>`;
+      await mermaid.run({ nodes: [mermaidTarget.querySelector('.mermaid')] });
+    } catch (err) {
+      mermaidTarget.innerHTML = `<pre style="color:var(--neon-magenta);">${currentMermaidCode}</pre>`;
+    }
+  }
+
+  copyMermaidBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(currentMermaidCode);
+    const orig = copyMermaidBtn.textContent;
+    copyMermaidBtn.textContent = '✅ Copied Code!';
+    setTimeout(() => { copyMermaidBtn.textContent = orig; }, 2000);
+  });
+
+  downloadSvgBtn.addEventListener('click', () => {
+    const svgEl = mermaidTarget.querySelector('svg');
+    if (!svgEl) return;
+    const svgData = new XMLSerializer().serializeToString(svgEl);
+    const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'DOCUFORGE_DIAGRAM.svg';
+    a.click();
+    URL.revokeObjectURL(url);
   });
 
   // Generate Action
@@ -282,6 +382,13 @@ impl VectorMathEngine {
         }
         if (data.cliCommand) {
           outputCliContent.textContent = data.cliCommand;
+        }
+
+        // Extract Mermaid block if present
+        const mermaidMatch = data.generatedDoc.match(/```mermaid([\s\S]*?)```/);
+        if (mermaidMatch && mermaidMatch[1]) {
+          currentMermaidCode = mermaidMatch[1].trim();
+          renderMermaidDiagram();
         }
       } else {
         alert('Failed to generate documentation.');
