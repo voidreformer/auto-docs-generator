@@ -159,13 +159,17 @@ app.post('/api/generate-docs', async (req, res) => {
 
     const generatedDoc = await generateDocsWithLLM(code, format);
 
-    // Save to DB
-    const db = await getDB();
-    db.run(
-      `INSERT INTO docs_history (title, format, raw_code, generated_doc) VALUES (?, ?, ?, ?)`,
-      [title || 'Code Module', format, code, generatedDoc]
-    );
-    saveDB();
+    // Save to DB (safely)
+    try {
+      const db = await getDB();
+      db.run(
+        `INSERT INTO docs_history (title, format, raw_code, generated_doc) VALUES (?, ?, ?, ?)`,
+        [title || 'Code Module', format, code, generatedDoc]
+      );
+      saveDB();
+    } catch (dbErr) {
+      console.warn('DB Save warning:', dbErr.message);
+    }
 
     res.json({
       success: true,
