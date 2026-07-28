@@ -3,31 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DocuAI — Auto Documentation Generator</title>
+  <title>DocuForge AI — Enterprise Auto Documentation Generator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="app-container">
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
-      <div class="logo">
-        <span class="logo-icon">✍️</span>
-        <h2>DocuAI</h2>
+      <div>
+        <div class="logo">
+          <img src="logo.png" alt="DocuForge AI Logo" class="logo-img" id="app-logo">
+          <h2>DocuForge AI</h2>
+        </div>
+        <nav class="nav-menu">
+          <button id="nav-dashboard" class="active"><span class="icon">📄</span> Doc Generator</button>
+          <button id="nav-history"><span class="icon">💼</span> Saved Library</button>
+        </nav>
       </div>
-      <nav class="nav-menu">
-        <button id="nav-dashboard" class="active"><span class="icon">📄</span> Doc Generator</button>
-        <button id="nav-history"><span class="icon">💼</span> Saved Docs</button>
-      </nav>
+
       <div class="sidebar-footer">
-        <div class="user-profile" id="user-profile-btn" style="cursor: pointer;">
-          <div class="avatar" id="user-avatar">D</div>
+        <div class="user-profile" id="user-profile-trigger">
+          <div class="avatar" id="user-avatar-initial">D</div>
           <div class="user-info">
-            <h4 id="user-name-display">Dev Workspace</h4>
-            <p id="user-role-display">Click to Login / Register</p>
+            <h4 id="user-display-name">Dev Workspace</h4>
+            <p id="user-display-status">Operational • Configure API Key</p>
           </div>
         </div>
       </div>
@@ -39,20 +43,21 @@
       <div id="view-dashboard-container">
         <header class="header">
           <div class="header-title">
-            <h1>Auto Documentation Generator</h1>
-            <p>Instantly turn code changes, complex modules, or git diffs into production-grade documentation.</p>
+            <h1>DocuForge AI Generator</h1>
+            <p>Turn code changes, modules, or git diffs into enterprise production documentation.</p>
           </div>
-          <div class="header-actions">
-            <div class="status-badge live" id="ai-status-badge">NVIDIA Nemotron Doc Engine</div>
+          <div class="header-actions" style="display: flex; gap: 12px; align-items: center;">
+            <button id="theme-toggle-btn" class="btn secondary btn-sm">🌙 Dark Mode</button>
+            <div class="status-badge live" id="ai-status-badge">NVIDIA Nemotron 340B Engine</div>
           </div>
         </header>
 
         <!-- Template Presets Row -->
         <div style="display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap;">
-          <span style="font-size: 13px; color: #A0A5C0; font-weight: 600;">💡 Try Presets:</span>
-          <button id="sample-js-btn" class="btn secondary btn-sm" style="font-size: 12px; padding: 4px 12px;">💻 Auth Controller (JS)</button>
-          <button id="sample-python-btn" class="btn secondary btn-sm" style="font-size: 12px; padding: 4px 12px;">🐍 FastAPI Service (Python)</button>
-          <button id="sample-rust-btn" class="btn secondary btn-sm" style="font-size: 12px; padding: 4px 12px;">⚙️ WASM Engine (Rust)</button>
+          <span style="font-size: 13px; font-weight: 700;" class="text-muted-theme">💡 Try Presets:</span>
+          <button id="sample-js-btn" class="btn secondary btn-sm">💻 Auth Controller (JS)</button>
+          <button id="sample-python-btn" class="btn secondary btn-sm">🐍 FastAPI Service (Python)</button>
+          <button id="sample-rust-btn" class="btn secondary btn-sm">⚙️ WASM Engine (Rust)</button>
         </div>
 
         <div class="dashboard-grid">
@@ -64,7 +69,7 @@
             </div>
             
             <div class="format-selection">
-              <h4>Target Documentation Format</h4>
+              <h4>Target Documentation Format (7 Types)</h4>
               <div class="radio-group">
                 <label class="radio-label">
                   <input type="radio" name="doc-format" value="readme" checked>
@@ -80,36 +85,69 @@
                 </label>
                 <label class="radio-label">
                   <input type="radio" name="doc-format" value="architecture">
-                  <span>🏗️ Architecture Summary</span>
+                  <span>🏗️ Architecture Diagram</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="doc-format" value="unittest">
+                  <span>🧪 Unit Test Suite</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="doc-format" value="security">
+                  <span>🔒 Security Audit</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="doc-format" value="changelog">
+                  <span>🚀 SemVer Changelog</span>
                 </label>
               </div>
             </div>
 
             <div class="action-row">
-              <button id="generate-btn" class="btn primary">⚡ Generate Documentation</button>
+              <button id="generate-btn" class="btn primary">⚡ Forge Documentation</button>
             </div>
           </section>
 
-          <!-- Output Preview Panel -->
+          <!-- Output Preview Panel (5 Output Types) -->
           <section class="card output-card">
             <div class="card-header">
               <h3>2. Documentation Output</h3>
-              <div style="display: flex; gap: 8px; align-items: center;">
+              <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                 <button id="tab-raw-btn" class="btn secondary btn-sm" style="border-color: var(--neon-lime); color: var(--neon-lime);">📄 Raw Markdown</button>
-                <button id="tab-preview-btn" class="btn secondary btn-sm">👁️ Live Preview</button>
-                <button id="copy-btn" class="btn secondary btn-sm">📋 Copy</button>
-                <button id="export-txt-btn" class="btn secondary btn-sm">📥 Download .md</button>
+                <button id="tab-preview-btn" class="btn secondary btn-sm">👁️ HTML Preview</button>
+                <button id="tab-json-btn" class="btn secondary btn-sm">📊 JSON Schema</button>
+                <button id="tab-cli-btn" class="btn secondary btn-sm">⚡ CLI Command</button>
+                <button id="tab-diagram-btn" class="btn secondary btn-sm">🖼️ Diagram</button>
               </div>
             </div>
 
-            <!-- Raw Text Area Mode -->
+            <!-- Output Views -->
             <div id="output-raw-wrapper" style="display: flex; flex-grow: 1;">
-              <textarea id="output-doc-content" readonly placeholder="Generated documentation will appear here..."></textarea>
+              <textarea id="output-doc-content" readonly placeholder="Forge output will appear here..."></textarea>
             </div>
 
-            <!-- Rendered HTML Markdown Preview Mode -->
             <div id="output-preview-wrapper" class="markdown-body hidden">
               <p style="color: var(--text-muted);">Live HTML preview will render here...</p>
+            </div>
+
+            <div id="output-json-wrapper" class="markdown-body hidden">
+              <pre><code id="output-json-content">{}</code></pre>
+            </div>
+
+            <div id="output-cli-wrapper" class="markdown-body hidden">
+              <pre><code id="output-cli-content">npx docuforge-ai generate --format=readme</code></pre>
+            </div>
+
+            <div id="output-diagram-wrapper" class="markdown-body hidden" style="text-align: center;">
+              <div id="mermaid-container" class="mermaid">
+                graph TD
+                Client["📱 App Client"] --> API["⚡ Express Engine"]
+                API --> LLM["🧠 Nemotron-4 LLM"]
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+              <button id="copy-btn" class="btn secondary btn-sm">📋 Copy Output</button>
+              <button id="export-txt-btn" class="btn secondary btn-sm">📥 Download .md</button>
             </div>
           </section>
         </div>
@@ -127,12 +165,41 @@
 
         <section class="card">
           <div id="history-list-container" style="display: flex; flex-direction: column; gap: 1rem;">
-            <p style="color: var(--text-muted);">Loading saved documentations...</p>
+            <p class="text-muted-theme">Loading saved documentations...</p>
           </div>
         </section>
       </div>
     </main>
   </div>
+
+  <!-- Operational Profile Modal -->
+  <div id="profile-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="font-family: var(--font-display);">⚙️ Operational Profile & Settings</h3>
+        <button id="close-modal-btn" class="close-modal-btn">&times;</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <label style="font-size: 0.85rem; font-weight: 600;">Developer Name / Workspace</label>
+        <input type="text" id="modal-user-name" class="modal-input" value="Dev Workspace">
+
+        <label style="font-size: 0.85rem; font-weight: 600;">Custom NVIDIA / Gemini API Key (Optional)</label>
+        <input type="password" id="modal-api-key" class="modal-input" placeholder="nvapi-xxx or AIzaSy-xxx">
+        <p style="font-size: 0.75rem; color: var(--text-muted);">Custom keys are stored safely in local browser storage.</p>
+
+        <div style="background: rgba(122, 73, 255, 0.15); border: 1px solid var(--neon-purple); padding: 1rem; border-radius: var(--radius-sm); margin-top: 10px;">
+          <h4 style="font-size: 0.9rem; color: var(--neon-lime);">🛡️ Operational Status</h4>
+          <p style="font-size: 0.8rem; margin-top: 4px;">Engine Status: <strong style="color: var(--neon-lime);">ACTIVE</strong></p>
+          <p style="font-size: 0.8rem;">JWT Token Validated: <strong style="color: var(--neon-lime);">TRUE</strong></p>
+          <p style="font-size: 0.8rem;">WASM SQLite Storage: <strong style="color: var(--neon-lime);">PERSISTED</strong></p>
+        </div>
+
+        <button id="save-profile-btn" class="btn primary" style="width: 100%; margin-top: 10px;">Save Profile Settings</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

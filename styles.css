@@ -1,15 +1,16 @@
-/* Monokai Code Studio — Strict 3-Color Neon Design System */
+/* DocuForge AI — Strict 3-Color Neon & Dual Mode Design System */
 :root {
   /* Strict 3-Color Neon Palette */
   --neon-lime: #E3FF28;
   --neon-magenta: #EE29FF;
   --neon-purple: #7A49FF;
 
-  /* Dark Monokai Glass Canvas */
+  /* Dark Monokai Glass Canvas (Default) */
   --bg-darker: #0B0719;
   --bg-dark: #120C29;
-  --bg-card: rgba(18, 12, 41, 0.7);
-  --bg-card-hover: rgba(28, 19, 64, 0.8);
+  --bg-card: rgba(18, 12, 41, 0.75);
+  --bg-card-hover: rgba(28, 19, 64, 0.85);
+  --bg-input: rgba(11, 7, 25, 0.95);
   
   --text-main: #FFFFFF;
   --text-muted: #A0A5C0;
@@ -25,6 +26,89 @@
   --font-sans: 'Inter', sans-serif;
 }
 
+/* LIGHT MODE OVERRIDES: Strict 3-Color Neon Full Gradient Background */
+body.light-theme {
+  background: linear-gradient(135deg, #E3FF28 0%, #EE29FF 50%, #7A49FF 100%) !important;
+  background-attachment: fixed !important;
+  color: #0F172A;
+}
+
+body.light-theme .sidebar {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(15, 23, 42, 0.15);
+}
+
+body.light-theme .card {
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(15, 23, 42, 0.15) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15) !important;
+  color: #0F172A !important;
+}
+
+body.light-theme .header-title h1 {
+  background: linear-gradient(135deg, #0F172A, #7A49FF) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+body.light-theme .header-title p,
+body.light-theme .user-info p,
+body.light-theme .format-selection h4,
+body.light-theme .text-muted-theme {
+  color: #475569 !important;
+}
+
+body.light-theme textarea,
+body.light-theme .markdown-body {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border: 1px solid rgba(15, 23, 42, 0.2) !important;
+}
+
+body.light-theme textarea:focus {
+  border-color: #7A49FF !important;
+  box-shadow: 0 0 15px rgba(122, 73, 255, 0.3) !important;
+}
+
+body.light-theme .radio-label {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #475569 !important;
+  border: 1px solid rgba(15, 23, 42, 0.2) !important;
+}
+
+body.light-theme .radio-label:has(input:checked) {
+  background: #0F172A !important;
+  color: #E3FF28 !important;
+  border-color: #0F172A !important;
+}
+
+body.light-theme .btn.primary {
+  background: #0F172A !important;
+  color: #E3FF28 !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.3) !important;
+}
+
+body.light-theme .btn.secondary {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #0F172A !important;
+  border: 1px solid rgba(15, 23, 42, 0.3) !important;
+}
+
+body.light-theme .nav-menu button,
+body.light-theme .nav-menu a {
+  color: #475569 !important;
+}
+
+body.light-theme .nav-menu button.active,
+body.light-theme .nav-menu a.active {
+  background: #0F172A !important;
+  color: #E3FF28 !important;
+  border-left: 4px solid #EE29FF !important;
+}
+
+/* BASE STYLES */
 * {
   margin: 0;
   padding: 0;
@@ -34,9 +118,9 @@
 body {
   background-color: var(--bg-darker);
   background-image: 
-    radial-gradient(circle at 15% 15%, rgba(122, 73, 255, 0.15) 0%, transparent 45%),
-    radial-gradient(circle at 85% 85%, rgba(238, 41, 255, 0.12) 0%, transparent 45%),
-    radial-gradient(circle at 50% 50%, rgba(227, 255, 40, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 15% 15%, rgba(122, 73, 255, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(238, 41, 255, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(227, 255, 40, 0.08) 0%, transparent 50%);
   color: var(--text-main);
   font-family: var(--font-sans);
   line-height: 1.6;
@@ -48,13 +132,13 @@ body {
 /* App Layout Grid */
 .app-container {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 280px 1fr;
   min-height: 100vh;
 }
 
 /* Sidebar Styling */
 .sidebar {
-  background: rgba(11, 7, 25, 0.85);
+  background: rgba(11, 7, 25, 0.88);
   backdrop-filter: blur(16px);
   border-right: 1px solid var(--border);
   padding: 2rem 1.5rem;
@@ -66,18 +150,22 @@ body {
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 3rem;
+  gap: 0.85rem;
+  margin-bottom: 2.5rem;
 }
 
-.logo-icon {
-  font-size: 1.5rem;
-  filter: drop-shadow(0 0 10px var(--neon-lime));
+.logo-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid var(--neon-lime);
+  box-shadow: 0 0 15px rgba(227, 255, 40, 0.4);
 }
 
 .logo h2 {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 800;
   background: linear-gradient(135deg, var(--neon-lime), #FFFFFF);
   -webkit-background-clip: text;
@@ -140,10 +228,11 @@ body {
   padding: 8px;
   border-radius: var(--radius-sm);
   transition: var(--transition);
+  cursor: pointer;
 }
 
 .user-profile:hover {
-  background: rgba(122, 73, 255, 0.1);
+  background: rgba(122, 73, 255, 0.15);
 }
 
 .avatar {
@@ -175,7 +264,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  max-width: 1400px;
+  max-width: 1440px;
   width: 100%;
   margin: 0 auto;
 }
@@ -190,7 +279,7 @@ body {
 
 .header-title h1 {
   font-family: var(--font-display);
-  font-size: 2.2rem;
+  font-size: 2.3rem;
   font-weight: 800;
   margin-bottom: 0.25rem;
   letter-spacing: -0.5px;
@@ -257,7 +346,6 @@ body {
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--text-main);
 }
 
 /* Form inputs & Format Radios */
@@ -267,7 +355,7 @@ body {
 }
 
 textarea {
-  background-color: rgba(11, 7, 25, 0.9);
+  background-color: var(--bg-input);
   border: 1px solid var(--border);
   color: #E2E8F0;
   padding: 1.2rem;
@@ -304,18 +392,18 @@ textarea:focus {
 
 .radio-group {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
 }
 
 .radio-label {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  padding: 0.6rem 1.1rem;
+  padding: 0.55rem 0.9rem;
   background-color: var(--bg-dark);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -385,7 +473,7 @@ textarea:focus {
 }
 
 .btn-sm {
-  padding: 0.4rem 0.9rem;
+  padding: 0.4rem 0.85rem;
   font-size: 0.8rem;
 }
 
@@ -400,7 +488,7 @@ textarea:focus {
 
 .output-card textarea {
   min-height: 440px;
-  background-color: rgba(11, 7, 25, 0.95);
+  background-color: var(--bg-input);
   border: 1px solid var(--border);
   color: #F8FAFC;
   padding: 1.25rem;
@@ -415,7 +503,7 @@ textarea:focus {
 /* Markdown Preview Container */
 .markdown-body {
   padding: 1.25rem;
-  background: rgba(11, 7, 25, 0.95);
+  background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   color: #F8FAFC;
@@ -468,7 +556,72 @@ textarea:focus {
   color: var(--neon-lime);
 }
 
-/* Utility Hidden Class */
+/* Modal Operational Drawer */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 1;
+  transition: var(--transition);
+}
+
+.modal-content {
+  background: var(--bg-dark);
+  border: 1px solid var(--neon-purple);
+  box-shadow: 0 0 40px rgba(122, 73, 255, 0.4);
+  border-radius: var(--radius-lg);
+  padding: 2.2rem;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+body.light-theme .modal-content {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #7A49FF !important;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-modal-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  font-size: 0.9rem;
+}
+
+body.light-theme .modal-input {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+
+/* Hidden Class */
 .hidden {
   display: none !important;
 }
