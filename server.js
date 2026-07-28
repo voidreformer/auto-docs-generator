@@ -19,7 +19,7 @@ async function generateDocsWithLLM(code, format) {
 
   if (apiKey) {
     try {
-      const fetch = (await import('node-fetch')).default;
+      const fetchFn = typeof fetch !== 'undefined' ? fetch : (await import('node-fetch')).default;
       const systemPrompt = `You are DocuAI, an enterprise-grade Lead Technical Writer & Software Architect.
 Your job is to generate crystal-clear, clean, production-ready documentation from source code or git diffs.
 
@@ -31,7 +31,7 @@ Instructions per format:
 - COMMENTS: Output the provided code with rich JSDoc/Docstring/Rustdoc comments inserted above every class and function.
 - ARCHITECTURE: Output a high-level system architecture overview breakdown with a Mermaid diagram flowchart.`;
 
-      const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+      const response = await fetchFn('https://integrate.api.nvidia.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ Instructions per format:
         }
       }
     } catch (err) {
-      console.warn('NVIDIA API Call failed, falling back to local doc generator:', err.message);
+      console.warn('LLM API Call failed, utilizing local doc generator engine:', err.message);
     }
   }
 
