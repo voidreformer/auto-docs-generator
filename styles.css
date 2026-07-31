@@ -734,3 +734,25 @@ body.light-theme .modal-input {
   color: var(--text-muted);
 }
 
+/* Mobile RAG & Touch UX Optimizations (< 768px) */
+@media (max-width: 768px) {
+  #view-rag-container > div:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
+  
+  #rag-citations-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #mermaid-render-box {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+button, input, select, textarea, .nav-menu button, .rag-quick-tag {
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+
