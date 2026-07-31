@@ -7,6 +7,7 @@ const DB_PATH = process.env.NODE_ENV === 'production'
 
 let db = null;
 let memoryStore = [];
+let memoryVectorStore = [];
 
 async function getDB() {
   if (db) return db;
@@ -31,13 +32,22 @@ async function getDB() {
         generated_doc TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS doc_vectors (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        doc_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        format TEXT NOT NULL,
+        chunk_text TEXT NOT NULL,
+        vector_json TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
     saveDB();
     return db;
   } catch (err) {
     console.warn('WASM SQLite initialization fallback:', err.message);
-    // Return memory fallback interface
     return {
       run: (query, params = []) => {
         if (query.includes('INSERT INTO docs_history')) {
@@ -49,9 +59,27 @@ async function getDB() {
             generated_doc: params[3],
             created_at: new Date().toISOString()
           });
+        } else if (query.includes('INSERT INTO doc_vectors')) {
+          memoryVectorStore.push({
+            id: memoryVectorStore.length + 1,
+            doc_id: params[0],
+            title: params[1],
+            format: params[2],
+            chunk_text: params[3],
+            vector_json: params[4],
+            created_at: new Date().toISOString()
+          });
+        } else if (query.includes('DELETE FROM doc_vectors')) {
+          memoryVectorStore = [];
         }
       },
-      exec: () => {
+      exec: (query) => {
+        if (query.includes('FROM doc_vectors')) {
+          return [{
+            columns: ['id', 'doc_id', 'title', 'format', 'chunk_text', 'vector_json', 'created_at'],
+            values: memoryVectorStore.map(item => [item.id, item.doc_id, item.title, item.format, item.chunk_text, item.vector_json, item.created_at])
+          }];
+        }
         return [{
           columns: ['id', 'title', 'format', 'raw_code', 'generated_doc', 'created_at'],
           values: memoryStore.map(item => [item.id, item.title, item.format, item.raw_code, item.generated_doc, item.created_at])
@@ -72,7 +100,43 @@ function saveDB() {
   }
 }
 
+async function saveDocVectors(entries) {
+  const database = await getDB();
+  for (const entry of entries) {
+    database.run(
+      `INSERT INTO doc_vectors (doc_id, title, format, chunk_text, vector_json) VALUES (?, ?, ?, ?, ?)`,
+      [entry.doc_id, entry.title || 'Code Snippet', entry.format || 'RAW_CODE', entry.chunk_text, JSON.stringify(entry.vector)]
+    );
+  }
+  saveDB();
+}
+
+async function getDocVectors() {
+  const database = await getDB();
+  const res = database.exec(`SELECT id, doc_id, title, format, chunk_text, vector_json, created_at FROM doc_vectors ORDER BY id DESC`);
+  if (!res || res.length === 0 || !res[0].values) return [];
+  
+  return res[0].values.map(row => ({
+    id: row[0],
+    doc_id: row[1],
+    title: row[2],
+    format: row[3],
+    chunk_text: row[4],
+    vector: JSON.parse(row[5]),
+    created_at: row[6]
+  }));
+}
+
+async function clearDocVectors() {
+  const database = await getDB();
+  database.run(`DELETE FROM doc_vectors`);
+  saveDB();
+}
+
 module.exports = {
   getDB,
-  saveDB
+  saveDB,
+  saveDocVectors,
+  getDocVectors,
+  clearDocVectors
 };

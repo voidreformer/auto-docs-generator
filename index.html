@@ -22,6 +22,7 @@
         </div>
         <nav class="nav-menu">
           <button id="nav-dashboard" class="active"><span class="icon">📄</span> Doc Generator</button>
+          <button id="nav-rag"><span class="icon">🧠</span> Ask Code RAG</button>
           <button id="nav-history"><span class="icon">💼</span> Saved Library</button>
         </nav>
       </div>
@@ -162,6 +163,82 @@
             </div>
           </section>
         </div>
+      </div>
+
+      <!-- CODEBASE & TECH DOCS RAG VIEW -->
+      <div id="view-rag-container" class="hidden">
+        <header class="header">
+          <div class="header-title">
+            <h1>🧠 Ask Code RAG Engine</h1>
+            <p>Perform semantic vector queries & architectural Q&A across your codebase and generated docs with exact code citations.</p>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <span class="badge" id="rag-indexed-badge" style="background: rgba(122, 73, 255, 0.2); color: var(--neon-purple); border: 1px solid var(--neon-purple); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700;">RAG Ready (<span id="rag-count-num">0</span> Chunks)</span>
+            <button id="clear-rag-btn" class="btn secondary" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">🗑️ Clear RAG DB</button>
+          </div>
+        </header>
+
+        <!-- RAG Main Workspace Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; margin-bottom: 1.5rem;">
+          <!-- Left Search & Grounded Q&A Panel -->
+          <section class="card">
+            <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--neon-purple);">🔍 Search Codebase & Ask Technical Questions</h3>
+            
+            <div style="margin-bottom: 1rem;">
+              <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="text" id="rag-query-input" placeholder="e.g. How does authentication work? or Where is the database initialized?" style="flex: 1; padding: 12px 16px; border-radius: 8px; background: rgba(11, 7, 25, 0.8); color: #fff; border: 1px solid rgba(255,255,255,0.15); font-size: 0.95rem;" />
+                <button id="rag-search-btn" class="btn primary" style="padding: 12px 24px; white-space: nowrap;">🔍 Ask RAG AI</button>
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 0.8rem; color: var(--text-muted); align-self: center;">Quick Queries:</span>
+                <button class="badge rag-quick-tag" data-query="How is authentication and JWT handled?">🔐 Auth & Tokens</button>
+                <button class="badge rag-quick-tag" data-query="What database tables and schemas exist?">🗄️ Database Schemas</button>
+                <button class="badge rag-quick-tag" data-query="What API endpoints are available?">🌐 API Endpoints</button>
+                <button class="badge rag-quick-tag" data-query="What security risks or sanitization issues exist?">🛡️ Security Audit</button>
+              </div>
+            </div>
+
+            <!-- Grounded Response Box -->
+            <div id="rag-answer-container" class="hidden" style="margin-top: 1.5rem; padding: 1.25rem; border-radius: 8px; background: rgba(11, 7, 25, 0.95); border: 1px solid var(--neon-purple);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px;">
+                <span style="font-size: 0.9rem; font-weight: 700; color: var(--neon-purple);">🧠 Grounded RAG Synthesis (NVIDIA Nemotron 4 340B)</span>
+                <span id="rag-matches-count" style="font-size: 0.8rem; background: rgba(122, 73, 255, 0.2); color: var(--neon-purple); padding: 2px 8px; border-radius: 10px;">0 Sources</span>
+              </div>
+              <div id="rag-answer-text" style="line-height: 1.7; font-size: 0.9rem; color: var(--text-main); white-space: pre-wrap;"></div>
+            </div>
+          </section>
+
+          <!-- Right Manual Code Indexer -->
+          <section class="card">
+            <h3 style="font-size: 1rem; margin-bottom: 0.75rem; color: var(--neon-purple);">📥 Index Custom Code Batch</h3>
+            <div style="margin-bottom: 10px;">
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Document Title / File Name</label>
+              <input type="text" id="rag-source-title" value="auth_controller.js" style="width: 100%; padding: 8px 12px; border-radius: 6px; background: rgba(11, 7, 25, 0.8); color: #fff; border: 1px solid rgba(255,255,255,0.15); font-size: 0.85rem;" />
+            </div>
+            <div style="margin-bottom: 10px;">
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Format Category</label>
+              <select id="rag-source-format" style="width: 100%; padding: 8px 12px; border-radius: 6px; background: rgba(11, 7, 25, 0.8); color: #fff; border: 1px solid rgba(255,255,255,0.15); font-size: 0.85rem;">
+                <option value="RAW_CODE" selected>Raw Source Code</option>
+                <option value="API_SPEC">API Specification</option>
+                <option value="ARCHITECTURE">Architecture Breakdown</option>
+                <option value="SECURITY">Security Protocol</option>
+              </select>
+            </div>
+            <div style="margin-bottom: 10px;">
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Code Snippets / Tech Docs</label>
+              <textarea id="rag-batch-input" rows="8" placeholder="Paste code functions or documentation paragraphs here..." style="width: 100%; padding: 8px 12px; border-radius: 6px; background: rgba(11, 7, 25, 0.8); color: #fff; border: 1px solid rgba(255,255,255,0.15); font-size: 0.8rem; font-family: monospace; resize: vertical;"></textarea>
+            </div>
+            <button id="rag-index-now-btn" class="btn primary" style="width: 100%;">⚡ Vectorize & Index Code</button>
+          </section>
+        </div>
+
+        <!-- Citations / Retrieved Code Grid -->
+        <section class="card">
+          <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--neon-purple);">📌 Retrieved Source Citations & Match Confidence</h3>
+          <div id="rag-citations-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem;">
+            <div style="color: var(--text-muted); font-size: 0.85rem; padding: 2rem; text-align: center; grid-column: span 3;">Submit a RAG query above to inspect matching code and documentation citations.</div>
+          </div>
+        </section>
       </div>
 
       <!-- SAVED HISTORY VIEW -->

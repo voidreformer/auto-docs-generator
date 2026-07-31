@@ -422,19 +422,39 @@ impl VectorMathEngine {
     URL.revokeObjectURL(url);
   });
 
+  const navRag = document.getElementById('nav-rag');
+  const viewRag = document.getElementById('view-rag-container');
+
+  const ragQueryInput = document.getElementById('rag-query-input');
+  const ragSearchBtn = document.getElementById('rag-search-btn');
+  const ragAnswerContainer = document.getElementById('rag-answer-container');
+  const ragAnswerText = document.getElementById('rag-answer-text');
+  const ragMatchesCount = document.getElementById('rag-matches-count');
+  const ragCitationsGrid = document.getElementById('rag-citations-grid');
+  const ragCountNum = document.getElementById('rag-count-num');
+
+  const ragSourceTitle = document.getElementById('rag-source-title');
+  const ragSourceFormat = document.getElementById('rag-source-format');
+  const ragBatchInput = document.getElementById('rag-batch-input');
+  const ragIndexNowBtn = document.getElementById('rag-index-now-btn');
+  const clearRagBtn = document.getElementById('clear-rag-btn');
+
   // SPA View Routing
+  function hideAllViews() {
+    [viewDashboard, viewHistory, viewRag].forEach(v => { if (v) v.classList.add('hidden'); });
+    [navDashboard, navHistory, navRag].forEach(n => { if (n) n.classList.remove('active'); });
+  }
+
   function showDashboard() {
+    hideAllViews();
     viewDashboard.classList.remove('hidden');
-    viewHistory.classList.add('hidden');
     navDashboard.classList.add('active');
-    navHistory.classList.remove('active');
   }
 
   async function showHistory() {
-    viewDashboard.classList.add('hidden');
+    hideAllViews();
     viewHistory.classList.remove('hidden');
     navHistory.classList.add('active');
-    navDashboard.classList.remove('active');
 
     historyListContainer.innerHTML = '<p class="text-muted-theme">Loading saved documentations...</p>';
 
@@ -467,7 +487,183 @@ impl VectorMathEngine {
     }
   }
 
+  function showRag() {
+    hideAllViews();
+    if (viewRag) viewRag.classList.remove('hidden');
+    if (navRag) navRag.classList.add('active');
+    fetchRagStats();
+  }
+
   navDashboard.addEventListener('click', showDashboard);
   navHistory.addEventListener('click', showHistory);
+  if (navRag) navRag.addEventListener('click', showRag);
   backToDashboardBtn.addEventListener('click', showDashboard);
+
+  // ==========================================
+  // 🧠 RAG (RETRIEVAL-AUGMENTED GENERATION) HANDLERS
+  // ==========================================
+
+  async function fetchRagStats() {
+    try {
+      const res = await fetch('/api/rag/stats');
+      if (res.ok) {
+        const data = await res.json();
+        if (ragCountNum) ragCountNum.textContent = data.totalIndexed || 0;
+      }
+    } catch (e) {
+      console.warn('Failed to fetch RAG stats:', e);
+    }
+  }
+
+  async function executeCodeRagSearch(queryText) {
+    if (!queryText || !queryText.trim()) {
+      alert('Please enter a question to query the codebase vector store!');
+      return;
+    }
+
+    if (ragSearchBtn) {
+      ragSearchBtn.disabled = true;
+      ragSearchBtn.textContent = '🧠 Searching Codebase...';
+    }
+
+    try {
+      const res = await fetch('/api/rag/query-docs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: queryText.trim(), top_k: 5 })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'RAG Query Failed');
+
+      // Render Answer Box
+      if (ragAnswerContainer && ragAnswerText) {
+        ragAnswerContainer.classList.remove('hidden');
+        ragAnswerText.textContent = data.answer || 'No response generated.';
+        if (ragMatchesCount) ragMatchesCount.textContent = `${data.citations ? data.citations.length : 0} Sources`;
+      }
+
+      // Render Citations Cards Grid
+      if (ragCitationsGrid) {
+        if (!data.citations || data.citations.length === 0) {
+          ragCitationsGrid.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem; padding: 2rem; text-align: center; grid-column: span 3;">No matching vector sources found in RAG database. Try indexing more code files!</div>`;
+        } else {
+          ragCitationsGrid.innerHTML = data.citations.map(c => `
+            <div class="citation-card">
+              <div class="citation-header">
+                <span class="citation-title">📌 ${c.citation_id} (${c.format || 'CODE'})</span>
+                <span class="citation-match-badge">${c.similarity_pct}% Vector Match</span>
+              </div>
+              <div style="font-size: 0.8rem; font-weight: 700; color: var(--neon-lime); margin-bottom: 4px;">${c.title}</div>
+              <div class="citation-text">${c.text}</div>
+              <div class="citation-footer">
+                <span>Format: <strong>${c.format}</strong></span>
+                <span>Cos Similarity: <strong>${(c.similarity_pct / 100).toFixed(2)}</strong></span>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      if (ragCountNum) ragCountNum.textContent = data.totalIndexed || 0;
+
+    } catch (err) {
+      alert(`RAG Search Error: ${err.message}`);
+    } finally {
+      if (ragSearchBtn) {
+        ragSearchBtn.disabled = false;
+        ragSearchBtn.textContent = '🔍 Ask RAG AI';
+      }
+    }
+  }
+
+  async function indexCodeBatch(codeText, formatTag, titleText) {
+    if (!codeText || !codeText.trim()) {
+      alert('Please paste code or technical documentation text to index!');
+      return;
+    }
+
+    if (ragIndexNowBtn) {
+      ragIndexNowBtn.disabled = true;
+      ragIndexNowBtn.textContent = '⚡ Vectorizing Code...';
+    }
+
+    try {
+      const res = await fetch('/api/rag/index-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code_text: codeText.trim(),
+          format: formatTag || 'RAW_CODE',
+          title: titleText || 'Custom Code File'
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Indexing Failed');
+
+      alert(`✅ Success: ${data.message}`);
+      if (ragBatchInput) ragBatchInput.value = '';
+      fetchRagStats();
+    } catch (err) {
+      alert(`RAG Indexing Error: ${err.message}`);
+    } finally {
+      if (ragIndexNowBtn) {
+        ragIndexNowBtn.disabled = false;
+        ragIndexNowBtn.textContent = '⚡ Vectorize & Index Code';
+      }
+    }
+  }
+
+  // Event Listeners for RAG UI
+  if (ragSearchBtn) {
+    ragSearchBtn.addEventListener('click', () => {
+      executeCodeRagSearch(ragQueryInput ? ragQueryInput.value : '');
+    });
+  }
+
+  if (ragQueryInput) {
+    ragQueryInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        executeCodeRagSearch(ragQueryInput.value);
+      }
+    });
+  }
+
+  // Quick Query Tag Clicks
+  document.querySelectorAll('.rag-quick-tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      const query = tag.getAttribute('data-query');
+      if (ragQueryInput) ragQueryInput.value = query;
+      executeCodeRagSearch(query);
+    });
+  });
+
+  if (ragIndexNowBtn) {
+    ragIndexNowBtn.addEventListener('click', () => {
+      indexCodeBatch(
+        ragBatchInput ? ragBatchInput.value : '',
+        ragSourceFormat ? ragSourceFormat.value : 'RAW_CODE',
+        ragSourceTitle ? ragSourceTitle.value : 'Code File'
+      );
+    });
+  }
+
+  if (clearRagBtn) {
+    clearRagBtn.addEventListener('click', async () => {
+      if (confirm('Clear all indexed codebase vector entries from your RAG database?')) {
+        try {
+          await fetch('/api/rag/clear', { method: 'POST' });
+          alert('RAG database cleared!');
+          if (ragCountNum) ragCountNum.textContent = '0';
+          if (ragAnswerContainer) ragAnswerContainer.classList.add('hidden');
+          if (ragCitationsGrid) ragCitationsGrid.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem; padding: 2rem; text-align: center; grid-column: span 3;">Submit a RAG query above to inspect matching code and documentation citations.</div>`;
+        } catch(e) {}
+      }
+    });
+  }
+
+  // Initial stats fetch
+  fetchRagStats();
 });
+

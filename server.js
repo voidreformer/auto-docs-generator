@@ -3,7 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { getDB, saveDB } = require('./db');
+const { getDB, saveDB, saveDocVectors, getDocVectors, clearDocVectors } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3003;
@@ -239,6 +239,8 @@ app.post('/api/generate-docs', async (req, res) => {
         [title || 'Code Module', format, code, generatedDoc]
       );
       saveDB();
+      // Auto-index code & doc into RAG Vector Store
+      autoIndexDocInVectorStore(code, format, generatedDoc);
     } catch (dbErr) {
       console.warn('DB Save warning:', dbErr.message);
     }
@@ -302,6 +304,259 @@ app.delete('/api/history/:id', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`DocuForge AI Server running at http://localhost:${PORT}`);
+// ==========================================
+// 🧠 RAG CODEBASE & TECHNICAL DOCS VECTOR ENGINE
+// ==========================================
+
+function generateDocVector(text) {
+  const DIM = 128;
+  const vector = new Array(DIM).fill(0);
+  if (!text || typeof text !== 'string') return vector;
+
+  const normalized = text.toLowerCase().replace(/[^a-z0-9_\$\.\s]/g, ' ');
+  const words = normalized.split(/\s+/).filter(w => w.length > 1);
+
+  let hash = 0;
+  for (const word of words) {
+    for (let i = 0; i < word.length; i++) {
+      hash = (hash << 5) - hash + word.charCodeAt(i);
+      hash |= 0;
+    }
+    const idx = Math.abs(hash) % DIM;
+    vector[idx] += 1;
+  }
+
+  let norm = 0;
+  for (let i = 0; i < DIM; i++) {
+    norm += vector[i] * vector[i];
+  }
+  norm = Math.sqrt(norm);
+
+  if (norm > 0) {
+    for (let i = 0; i < DIM; i++) {
+      vector[i] = parseFloat((vector[i] / norm).toFixed(4));
+    }
+  }
+
+  return vector;
+}
+
+function cosineSimilarity(vecA, vecB) {
+  if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i];
+    normA += vecA[i] * vecA[i];
+    normB += vecB[i] * vecB[i];
+  }
+  if (normA === 0 || normB === 0) return 0;
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+// Auto-index function for generated docs
+async function autoIndexDocInVectorStore(code, format, doc) {
+  try {
+    const docId = `DOC_${Date.now()}`;
+    const chunks = [];
+
+    if (code && code.trim()) {
+      chunks.push({
+        doc_id: docId,
+        title: `Raw Source Code (${format.toUpperCase()})`,
+        format: 'RAW_CODE',
+        chunk_text: code.slice(0, 1500),
+        vector: generateDocVector(code)
+      });
+    }
+
+    if (doc && doc.trim()) {
+      const docLines = doc.split('\n\n');
+      docLines.forEach((para, idx) => {
+        if (para.trim().length > 30) {
+          chunks.push({
+            doc_id: docId,
+            title: `Generated ${format.toUpperCase()} Section #${idx + 1}`,
+            format: format.toUpperCase(),
+            chunk_text: para.trim().slice(0, 1500),
+            vector: generateDocVector(para)
+          });
+        }
+      });
+    }
+
+    if (chunks.length > 0) {
+      await saveDocVectors(chunks);
+    }
+  } catch (err) {
+    console.warn('Background auto-indexing failed:', err.message);
+  }
+}
+
+// RAG Endpoint 1: Index Code & Docs Batch
+app.post('/api/rag/index-code', async (req, res) => {
+  try {
+    const { code_text, format, title } = req.body;
+    if (!code_text || !code_text.trim()) {
+      return res.status(400).json({ error: 'Code or documentation text is required' });
+    }
+
+    const docId = `MANUAL_${Date.now()}`;
+    const paragraphs = code_text.split(/\n\s*\n/).filter(p => p.trim().length > 15);
+    const chunks = [];
+
+    for (let i = 0; i < paragraphs.length; i++) {
+      const pText = paragraphs[i].trim();
+      chunks.push({
+        doc_id: docId,
+        title: title || `Indexed Code Chunk #${i + 1}`,
+        format: (format || 'CODE_BATCH').toUpperCase(),
+        chunk_text: pText,
+        vector: generateDocVector(pText)
+      });
+    }
+
+    await saveDocVectors(chunks);
+
+    res.json({
+      success: true,
+      message: `Successfully indexed ${chunks.length} code/doc chunks into WASM vector store`,
+      indexedCount: chunks.length
+    });
+  } catch (err) {
+    console.error('RAG Code Indexing Error:', err);
+    res.status(500).json({ error: 'Failed to index code into RAG database' });
+  }
 });
+
+// RAG Endpoint 2: Query Codebase & Technical Docs
+app.post('/api/rag/query-docs', async (req, res) => {
+  try {
+    const { query, top_k } = req.body;
+    if (!query || !query.trim()) {
+      return res.status(400).json({ error: 'Natural language query is required' });
+    }
+
+    const k = parseInt(top_k) || 5;
+    const queryVector = generateDocVector(query);
+    const allVectors = await getDocVectors();
+
+    if (allVectors.length === 0) {
+      return res.json({
+        success: true,
+        answer: "No code or documentation has been indexed yet. Use the Indexer panel to upload your codebase or generate docs to automatically build your vector store!",
+        citations: [],
+        totalIndexed: 0
+      });
+    }
+
+    const scored = allVectors.map(item => ({
+      ...item,
+      score: cosineSimilarity(queryVector, item.vector)
+    }));
+
+    scored.sort((a, b) => b.score - a.score);
+    const topMatches = scored.slice(0, k);
+
+    const contextStr = topMatches.map((m, idx) => `[Source ${idx + 1} - ${m.format} - ${m.title}]:\n${m.chunk_text}`).join('\n\n');
+
+    let answerText = '';
+    const apiKey = process.env.NVIDIA_API_KEY || process.env.GEMINI_API_KEY;
+
+    if (apiKey) {
+      try {
+        const fetchFn = typeof fetch !== 'undefined' ? fetch : (await import('node-fetch')).default;
+        const ragPrompt = `You are DocuForge AI Code Assistant.
+Answer the developer's technical question based STRICTLY on the retrieved code and documentation snippets below.
+If the context does not contain enough info, state clearly what is missing based on retrieved snippets.
+
+Retrieved Codebase Context:
+${contextStr}
+
+Developer Question: ${query}`;
+
+        const llmRes = await fetchFn('https://integrate.api.nvidia.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'nvidia/nemotron-4-340b-instruct',
+            messages: [{ role: 'user', content: ragPrompt }],
+            temperature: 0.1,
+            max_tokens: 1500
+          })
+        });
+
+        if (llmRes.ok) {
+          const data = await llmRes.json();
+          if (data.choices && data.choices[0]?.message?.content) {
+            answerText = data.choices[0].message.content.trim();
+          }
+        }
+      } catch (err) {
+        console.warn('RAG LLM Synthesis fallback:', err.message);
+      }
+    }
+
+    if (!answerText) {
+      answerText = `Based on your indexed codebase context:\n\n` + 
+        topMatches.map((m, idx) => `• [${m.format} - ${m.title}]: "${m.chunk_text.slice(0, 180)}..."`).join('\n\n');
+    }
+
+    const citations = topMatches.map((m, idx) => ({
+      citation_id: `CIT-${idx + 1}`,
+      title: m.title,
+      format: m.format,
+      text: m.chunk_text,
+      similarity_pct: (m.score * 100).toFixed(1),
+      created_at: m.created_at
+    }));
+
+    res.json({
+      success: true,
+      query,
+      answer: answerText,
+      citations,
+      totalIndexed: allVectors.length
+    });
+  } catch (err) {
+    console.error('RAG Code Query Error:', err);
+    res.status(500).json({ error: 'Failed to process RAG code query' });
+  }
+});
+
+// RAG Endpoint 3: Stats
+app.get('/api/rag/stats', async (req, res) => {
+  try {
+    const allVectors = await getDocVectors();
+    res.json({
+      success: true,
+      totalIndexed: allVectors.length,
+      lastIndexedAt: allVectors.length > 0 ? allVectors[0].created_at : null
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch RAG stats' });
+  }
+});
+
+// RAG Endpoint 4: Clear DB
+app.post('/api/rag/clear', async (req, res) => {
+  try {
+    await clearDocVectors();
+    res.json({ success: true, message: 'RAG Code Vector DB cleared successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear RAG database' });
+  }
+});
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`DocuForge AI Server running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
+
