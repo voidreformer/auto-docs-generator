@@ -1,6 +1,9 @@
-# Blueprints: Auto Documentation Generator
+# 📄 DocuForge AI — Auto-generate Docs, Unit Tests & Diagrams with Code RAG
 
-This is a premium, ready-to-code frontend template for an **Auto Documentation Generator**. The interface is pre-built with CSS styling and interactive JS simulations, so you can focus on writing the AI agent logic and database storage.
+[![Featured on Product Hunt](https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1217464&theme=neutral&t=1786198837592)](https://www.producthunt.com/products/docuforge-ai?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-docuforge-ai)
+
+DocuForge AI is an enterprise-grade AI technical writing & principal architect platform. Turn code changes, modules, or git diffs into production-ready READMEs, API specifications, unit tests, OWASP security audits, and interactive Mermaid flowcharts with an in-browser WASM SQLite Code RAG vector engine.
+
 
 ## Recommended Architecture
 
