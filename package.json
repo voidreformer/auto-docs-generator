@@ -1,8 +1,27 @@
 {
-  "name": "04_auto_docs_generator",
+  "name": "@rudraattripandey/docuforge-ai",
   "version": "1.0.0",
-  "description": "Enterprise-grade Auto Documentation Generator with Monokai Code Studio UI",
+  "description": "Enterprise-grade AI Documentation Generator with Codebase RAG Vector Engine & Mermaid Flowcharts",
   "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/voidreformer/auto-docs-generator.git"
+  },
+  "keywords": [
+    "documentation",
+    "ai",
+    "rag",
+    "sqlite-wasm",
+    "mermaid",
+    "jsdoc",
+    "readme-generator",
+    "developer-tools"
+  ],
+  "author": "Rudra Attri Pandey",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
