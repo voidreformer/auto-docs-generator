@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Enterprise-grade AI Documentation Generator with Codebase RAG Vector Engine & Mermaid Flowcharts",
   "main": "server.js",
+  "bin": {
+    "docuforge-ai": "bin/cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/voidreformer/auto-docs-generator.git"
