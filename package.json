@@ -1,5 +1,5 @@
 {
-  "name": "@rudraattripandey/docuforge-ai",
+  "name": "@voidreformer/auto-docs-generator",
   "version": "1.0.0",
   "description": "Enterprise-grade AI Documentation Generator with Codebase RAG Vector Engine & Mermaid Flowcharts",
   "main": "server.js",
@@ -23,7 +23,7 @@
   "author": "Rudra Attri Pandey",
   "license": "MIT",
   "publishConfig": {
-    "access": "public"
+    "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
     "start": "node server.js",
